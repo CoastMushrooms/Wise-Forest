@@ -1,0 +1,282 @@
+:root{
+    --night:#06150e;
+    --leaf:#1f6b3a;
+    --gold:#f6c945;
+    --cream:#ffe9a8}
+*{box-sizing:border-box;margin:0}
+body{
+    font-family:Nunito,sans-serif;
+    background:var(--night);
+    color:var(--cream);
+    height:100vh;
+    overflow:hidden}
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 24px}
+h1{
+    font:700 1.7rem 'Cormorant Garamond',serif;
+    letter-spacing:1px;
+    text-shadow:0 0 18px #f6c94566}
+main{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:16px;height:calc(100vh - 62px);
+    padding:0 16px 16px}
+#stage{
+    position:relative;
+    border-radius:22px;
+    overflow:hidden;
+    border:1px solid #2d6b4a;
+    box-shadow:0 0 40px #0008 inset,0 10px 40px #0006}
+#scene{
+    width:100%;
+    height:100%;
+    display:block}
+.pill{
+    background:#14412b;
+    color:var(--cream);
+    border:1px solid var(--gold);
+    border-radius:20px;
+    padding:7px 14px;
+    cursor:pointer;
+    font:inherit;
+    transition:.25s}
+.pill:hover,.gold{
+    background:var(--gold);
+    color:#0b1f17}
+.pill:disabled{
+    opacity:.5;
+    cursor:wait}
+.lf{
+    transform-box:fill-box;
+    transform-origin:0 50%;
+    animation:lf 9s ease-in-out infinite alternate}
+
+@keyframes lf{to{transform:rotate(8deg)}}
+.mist{animation:drift 80s ease-in-out infinite alternate}
+
+@keyframes drift{to{transform:translateX(90px)}}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 6s infinite}
+
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.star{animation:tw 3s ease-in-out infinite alternate}
+
+@keyframes tw{from{opacity:.2}to{opacity:1}}
+.sign{transform-box:fill-box;transform-origin:50% 0;animation:sway 8s ease-in-out infinite alternate}
+
+@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+
+.br{
+    cursor:pointer}
+.br rect{
+    fill:#4a2f1b;
+    stroke:#b98b52;
+    stroke-width:1.5;
+    transition:fill .3s}
+.br text{
+    fill:var(--cream);
+    font:600 13px Nunito,sans-serif;
+    pointer-events:none;
+    transition:fill .3s}
+.br:hover rect,.br.active rect{
+    fill:var(--gold)}
+.br:hover text,.br.active text{
+    fill:#2b1a0c}
+.bp{
+    transition:stroke .6s,filter .6s}
+.bp.active{
+    stroke:#8a5a2b;
+    filter:drop-shadow(0 0 8px #f6c945)}
+.brick{
+    fill:#a8811c;
+    stroke:#6b4d0c;
+    stroke-width:.6;
+    transition:fill .8s,stroke .8s}
+.brick.lit{
+    fill:#ffd54a;
+    stroke:#ffeb9a}
+.pt{
+    animation:fall 5s ease-in forwards;
+    transform-box:fill-box}
+@keyframes fall{to{transform:translate(var(--dx),240px) rotate(540deg);opacity:0}}
+.bob{animation:bob 3.4s ease-in-out infinite alternate}
+
+@keyframes bob{to{transform:translateY(-5px)}}
+.wing{transform-box:fill-box;
+    transform-origin:50% 100%;
+    animation:flap .22s ease-in-out infinite alternate}
+
+@keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.4)}}
+.pulse{animation:pulse 2.6s ease-in-out infinite alternate}
+
+@keyframes pulse{from{opacity:.5}to{opacity:1}}
+.halo{animation:halo 2.6s ease-in-out infinite alternate}
+
+@keyframes halo{from{opacity:.12}to{opacity:.38}}
+
+#tip{
+    position:absolute;
+    pointer-events:none;
+    background:#06150ee6;
+    border:1px solid var(--gold);
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:.85rem;
+    opacity:0;
+    transition:opacity .2s;max-width:230px;
+    backdrop-filter:blur(6px)}
+#chat{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    background:linear-gradient(#0f2a1fdd,#08180fdd);
+    border:1px solid #2d6b4a;
+    border-radius:22px;
+    padding:16px;
+    backdrop-filter:blur(8px)}
+#log{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding-right:6px;
+    scroll-behavior:smooth}
+.msg{
+    max-width:90%;
+    padding:11px 15px;
+    border-radius:16px;
+    line-height:1.5;
+    animation:in .5s cubic-bezier(.2,.8,.2,1)}
+.msg a{
+    color:var(--gold)}
+.tree{
+    background:#1b5a3a;
+    align-self:flex-start;
+    border-bottom-left-radius:3px}
+.me{
+    background:var(--gold);
+    color:#0b1f17;
+    align-self:flex-end;
+    border-bottom-right-radius:3px}
+.src{
+    margin-top:8px;
+    font-size:.78rem;
+    opacity:.85;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px}
+.src a{
+    border:1px solid #f6c94566;
+    border-radius:10px;
+    padding:2px 8px;
+    text-decoration:none}
+
+@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.dots i{display:inline-block;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    margin:0 2px;
+    background:var(--cream);
+    animation:dot 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.15s}
+.dots i:nth-child(3){animation-delay:.3s}
+
+@keyframes dot{40%{transform:translateY(-6px)}}
+
+#chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:8px 0}
+#chips button{
+    background:none;
+    color:var(--cream);
+    border:1px dashed var(--gold);
+    border-radius:14px;
+    padding:4px 11px;
+    cursor:pointer;
+    font:inherit;
+    transition:.2s}
+#chips button:hover{
+    background:#ffffff18;
+    transform:translateY(-2px)}
+#form{
+    display:flex;
+    gap:8px}
+#input{
+    flex:1;
+    padding:11px 16px;
+    border-radius:22px;
+    border:1px solid var(--gold);
+    background:#06150e;
+    color:var(--cream);
+    font:inherit}
+.link{
+    background:none;
+    border:0;
+    color:#9fc9ad;
+    margin-top:8px;
+    cursor:pointer;
+    font:inherit}
+#gate{
+    position:fixed;
+    inset:0;z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(ellipse at 30% 0,#1c5a3a,#06150e 70%);
+    transition:opacity 1.2s ease}
+#gate.out{
+    opacity:0;
+    pointer-events:none}
+#gateForm{
+    width:min(380px,90vw);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:30px;
+    border-radius:22px;
+    background:#0f2a1fcc;
+    border:1px solid #2d6b4a;
+    backdrop-filter:blur(10px);
+    box-shadow:0 20px 60px #000a}
+#gateForm h2{
+    font:700 2rem 'Cormorant Garamond',serif;
+    text-align:center;
+    text-shadow:0 0 18px #f6c94566}
+#gateForm p{
+    text-align:center;
+    opacity:.85}
+#gateForm input:not([type=color]){
+    padding:11px 16px;
+    border-radius:22px;
+    border:1px solid var(--gold);
+    background:#06150e;
+    color:var(--cream);
+    font:inherit}
+#gateForm label{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 6px}
+#gateForm input[type=color]{
+    width:46px;
+    height:30px;
+    border:0;
+    background:none;
+    cursor:pointer}
+#gateForm .row{
+    display:flex;
+    gap:8px;
+    justify-content:center}
+#gerr{
+    color:#ff9d8a;
+    min-height:1.2em;
+    font-size:.9rem}
+@media(max-width:850px){
+    main{grid-template-columns:1fr;
+        grid-template-rows:42% 58%}}

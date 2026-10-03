@@ -1,0 +1,233 @@
+const COOLDOWN_MS = 2500;
+const CYCLE = 12;
+const VOLUME = 0.75;
+const SYSTEM = `You are the Tree of Wisdom, a warm, ancient tree guiding students through college and their careers. Act like a capable general assistant: answer broad questions from your knowledge, and when the student gets specific (a particular program, internship, club, deadline, requirement, salary, tool), use web search to find current, real details and link to them. Tailor advice to what the student has told you: year, major, interests, goals. If they don't know what they want, ask one or two gentle questions to discover it. Suggest things to study, explore and research. IMPORTANT: only discuss visas, CPT, OPT, or work authorization if the student says they are international or asks about it; if they do, keep those rules in mind and tell them to confirm with their school's international office. Never mention it otherwise. Keep replies under 200 words, use short bullets and **bold** sparingly, and speak with light forest warmth.`;
+
+const $ = id => document.getElementById(id), NS = "http://www.w3.org/2000/svg", rnd = (a, b) => a + Math.random() * (b - a);
+const el = (n, a = {}, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/^\s*[*-] /gm, "• ").replace(/\n/g, "<br>");
+
+const te = new TextEncoder(), td = new TextDecoder();
+const b64 = u => { let s = ""; new Uint8Array(u).forEach(b => s += String.fromCharCode(b)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const deriveKey = async (pw, salt) => crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 250000, hash: "SHA-256" },
+  await crypto.subtle.importKey("raw", te.encode(pw), "PBKDF2", false, ["deriveKey"]), { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+let KEY = null, SALT = null, UK = null, state = { milestones: [], history: [], color: "#ffd54a", name: "" };
+async function seal() {
+  if (!KEY) return;
+  const iv = crypto.getRandomValues(new Uint8Array(12)), snap = { ...state, history: state.history.slice(-40) };
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, KEY, te.encode(JSON.stringify(snap)));
+  localStorage.setItem(UK, JSON.stringify({ salt: b64(SALT), iv: b64(iv), data: b64(ct) }));
+}
+const persist = () => seal().catch(console.error);
+async function createAccount(user, pw, color) {
+  UK = "tw_user_" + user.toLowerCase();
+  if (localStorage.getItem(UK)) throw new Error("That name is already taken.");
+  SALT = crypto.getRandomValues(new Uint8Array(16)); KEY = await deriveKey(pw, SALT);
+  state = { milestones: [], history: [], color, name: user }; await seal();
+}
+async function login(user, pw) {
+  UK = "tw_user_" + user.toLowerCase();
+  const raw = localStorage.getItem(UK); if (!raw) throw new Error("No account with that name. Try Create account.");
+  const o = JSON.parse(raw); SALT = unb64(o.salt); KEY = await deriveKey(pw, SALT);
+  try { state = JSON.parse(td.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(o.iv) }, KEY, unb64(o.data)))); }
+  catch { KEY = null; throw new Error("Wrong password."); }
+}
+
+const svg = $("scene"), G = id => el("g", { id }, svg);
+const sky = G("sky"), hills = G("hills"), mist = G("mist"), tree = G("tree"), roadG = G("roadG"), fx = G("fx");
+el("rect", { width: 600, height: 800, fill: "url(#sky)" }, sky);
+for (let i = 0; i < 55; i++) el("circle", { cx: rnd(0, 600), cy: rnd(0, 260), r: rnd(.4, 1.3), fill: "#fff8d6", class: "star", style: `animation-delay:${rnd(0, 3)}s` }, sky);
+el("circle", { cx: 470, cy: 110, r: 85, fill: "url(#moon)" }, sky); el("circle", { cx: 470, cy: 110, r: 24, fill: "#fff6d0" }, sky);
+[["M0 230 Q100 150 220 200 T420 170 T600 190 V800 H0Z", "#12402b"], ["M0 330 Q150 250 300 300 T600 280 V800 H0Z", "#0d3524"], ["M0 450 Q200 380 400 430 T600 400 V800 H0Z", "#092617"]].forEach(([d, f]) => el("path", { d, fill: f }, hills));
+[[150, 400, 90], [330, 530, 80]].forEach(([y, x, ry], i) => el("ellipse", { cx: x, cy: y + 160, rx: 260, ry, fill: "#bfe8d0", opacity: .13, filter: "url(#blur)", class: "mist", style: `animation-duration:${80 + i * 25}s` }, mist));
+
+const trunk = el("g", { filter: "url(#rough)" }, tree);
+el("path", { d: "M30 800 C80 730 60 650 80 560 C95 480 70 400 88 330 C98 280 92 240 108 196 L152 206 C150 262 160 300 150 360 C145 430 172 500 162 570 C152 650 200 730 230 800Z", fill: "url(#bark)" }, trunk);
+const LEFT = [[30, 800, 80, 730, 60, 650, 80, 560], [80, 560, 95, 480, 70, 400, 88, 330], [88, 330, 98, 280, 92, 240, 108, 196]];
+const RIGHT = [[230, 800, 200, 730, 152, 650, 162, 570], [162, 570, 172, 500, 145, 430, 150, 360], [150, 360, 160, 300, 150, 262, 152, 206]];
+const groove = f => LEFT.map((a, i) => { const b = RIGHT[i], q = a.map((v, k) => (v + (b[k] - v) * f).toFixed(1)); return (i ? "" : `M${q[0]} ${q[1]} `) + `C${q[2]} ${q[3]} ${q[4]} ${q[5]} ${q[6]} ${q[7]}`; }).join(" ");
+const grooves = el("g", { fill: "none", "stroke-linecap": "round" }, trunk);
+for (let i = 0; i < 16; i++) el("path", { d: groove(.07 + i * .057 + rnd(-.012, .012)), stroke: "#1a0f06", "stroke-width": rnd(1.2, 2.4), opacity: rnd(.3, .5) }, grooves);
+for (let i = 0; i < 9; i++) el("path", { d: groove(.1 + i * .1 + rnd(-.02, .02)), stroke: "#9b6a36", "stroke-width": 1, opacity: .22 }, grooves);
+el("path", { d: "M104 470 Q120 420 138 470 Q135 520 120 524 Q106 520 104 470Z", fill: "#120a04" }, tree);
+[[112, 470], [130, 470]].forEach(([x, y]) => el("path", { d: `M${x - 5} ${y} Q${x} ${y - 6} ${x + 5} ${y} Q${x} ${y + 5} ${x - 5} ${y}Z`, fill: "#ffe9a8", filter: "url(#glow)", class: "eye" }, tree));
+
+const BR = [
+  { t: "College", l: "🎓 College & Major", d: "M148 565 C230 565 275 545 322 505", x: 322, y: 505 },
+  { t: "Career", l: "💼 Career", d: "M148 460 C225 450 265 415 332 388", x: 332, y: 388 },
+  { t: "Opportunities", l: "🌟 Opportunities", d: "M146 360 C200 340 255 305 312 272", x: 312, y: 272 },
+  { t: "Explore", l: "🧭 Not sure yet", d: "M155 655 C235 655 285 645 335 605", x: 335, y: 605 }];
+const CHIPS = {
+  College: ["Help Me Choose A Major", "Suggest Minors For Me", "What Can I Do With A CS Degree?"],
+  Career: ["Review My Resume", "Mock Interview Me", "What Career Suits Me?", "Find Internships"],
+  Opportunities: ["Clubs For My Interests", "Volunteer Ideas", "How Do I Join Research?", "On-Campus Jobs"],
+  Explore: ["I Don't Know What I Like", "Ask Me Questions To Find My Path"]
+};
+BR.forEach(b => {
+  b.path = el("path", { d: b.d, stroke: "#4a2f1b", "stroke-width": 14, fill: "none", "stroke-linecap": "round", class: "bp", filter: "url(#rough)" }, tree);
+  const g = el("g", { class: "br", transform: `translate(${b.x},${b.y})` }, tree), s = el("g", { class: "sign" }, g);
+  el("path", { d: "M-30 0 L-30 10 M30 0 L30 10", stroke: "#b98b52", "stroke-width": 1.5 }, s);
+  el("rect", { x: -64, y: 8, width: 128, height: 30, rx: 9 }, s);
+  el("text", { "text-anchor": "middle", y: 28 }, s).textContent = b.l;
+  g.onclick = () => pickBranch(b);
+});
+const greens = ["#1f6b3a", "#2a8a4a", "#164f2c", "#3aa35c", "#0f3d22"];
+for (let i = 0; i < 230; i++) {
+  const a = rnd(0, 6.28), r = Math.sqrt(Math.random()), x = 115 + Math.cos(a) * r * 165, y = 150 + Math.sin(a) * r * 115;
+  const g = el("g", { transform: `translate(${x},${y}) rotate(${rnd(0, 360)}) scale(${rnd(.8, 1.6)})` }, tree);
+  el("path", { d: "M0 0 C6 -9 16 -9 22 0 C16 9 6 9 0 0Z", fill: greens[i % 5], opacity: rnd(.75, 1), class: "lf", style: `animation-delay:${rnd(-5, 0)}s` }, g);
+}
+
+const ROAD = "M390 800 C250 700 500 600 360 520 C240 450 470 390 370 330 C300 290 420 250 390 200 C375 170 395 150 400 130";
+const rp = el("path", { d: ROAD, fill: "none" }, roadG), LEN = rp.getTotalLength(), N = 70, rows = [];
+const wd = t => 60 * Math.pow(1 - t, 1.1) + 5;
+const P = (s, o) => { const p = rp.getPointAtLength(s), q = rp.getPointAtLength(s + 1), m = Math.hypot(q.x - p.x, q.y - p.y) || 1, w = wd(s / LEN); return [p.x - (q.y - p.y) / m * o * w, p.y + (q.x - p.x) / m * o * w]; };
+const S = u => LEN * .97 * (1 - Math.pow(1 - u, 2));
+for (let i = 0; i < N; i++) {
+  const s0 = S(i / N), s1 = S((i + .92) / N), offs = i % 2 ? [-.5, 0, .5] : [-.5, -.17, .17, .5], r = { s: s1, els: [] };
+  for (let k = 0; k < offs.length - 1; k++) {
+    const pts = [P(s0, offs[k] + .01), P(s0, offs[k + 1] - .01), P(s1, offs[k + 1] - .01), P(s1, offs[k] + .01)];
+    r.els.push(el("polygon", { points: pts.map(p => p.join(",")).join(" "), class: "brick", style: `opacity:${(1 - i / N * .8) * rnd(.8, 1)}` }, roadG));
+  }
+  rows.push(r);
+}
+const hit = el("path", { d: ROAD, stroke: "transparent", "stroke-width": 80, fill: "none" }, roadG);
+const setLit = s => rows.forEach(r => r.els.forEach(e => e.classList.toggle("lit", r.s <= s)));
+const sAt = n => LEN * .92 * ((n % CYCLE) / (CYCLE - 1));
+
+function makeAvatar(p) {
+  const g = el("g", {}, p), f = el("g", { class: "bob" }, g);
+  el("ellipse", { cx: -2, cy: 0, rx: 8, ry: 2.2, fill: "#000", opacity: .3 }, g);
+  el("circle", { cx: -6, cy: -24, r: 13, style: "fill:var(--hood)", filter: "url(#glow)", class: "halo" }, f);
+  [[-38, 0], [-16, -.11]].forEach(([r, d]) => { const w = el("g", { transform: `rotate(${r} 0 -26)` }, f);
+    el("ellipse", { cx: 0, cy: -32, rx: 3.2, ry: 6.5, fill: "#eaf7ff", opacity: .5, stroke: "#fff", "stroke-width": .4, class: "wing", style: `animation-delay:${d}s` }, w); });
+  el("path", { d: "M0 -21.5 l-1 4 M2.5 -21.5 l0 4 M5 -21.5 l1.5 3.5", stroke: "#2b1a0c", "stroke-width": .9, fill: "none", "stroke-linecap": "round" }, f);
+  el("ellipse", { cx: -5.5, cy: -24, rx: 6.5, ry: 4.6, style: "fill:var(--hood)", filter: "url(#glow)", class: "pulse" }, f);
+  el("ellipse", { cx: -6, cy: -24, rx: 3.5, ry: 2.4, fill: "#fffbe0", opacity: .85, class: "pulse" }, f);
+  el("ellipse", { cx: 1.5, cy: -24.5, rx: 4.2, ry: 3.4, fill: "#4a2f1b" }, f);
+  el("circle", { cx: 7.2, cy: -25, r: 2.6, fill: "#2b1a0c" }, f);
+  el("path", { d: "M8.5 -27 Q11 -31 14 -31 M7.5 -27.5 Q8 -32 11 -34", stroke: "#ffe9a8", "stroke-width": .8, fill: "none", "stroke-linecap": "round" }, f);
+  return g;
+}
+const walker = makeAvatar(roadG);
+walker.style.transition = "opacity 1.2s ease";
+let cur = 0, anim;
+function place(s) { const p = rp.getPointAtLength(s), sc = 2 * (1 - s / LEN * .7); walker.setAttribute("transform", `translate(${p.x},${p.y}) scale(${sc})`); setLit(s); cur = s; }
+function walkTo(target) {
+  cancelAnimationFrame(anim); const from = cur, t0 = performance.now(), dur = 4200;
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  (function f(now) { const t = Math.min(1, (now - t0) / dur); place(from + (target - from) * ease(t)); if (t < 1) anim = requestAnimationFrame(f); })(t0);
+}
+
+const tip = $("tip"), lan = el("g", {}, roadG);
+function showTip(ev, html) { const r = $("stage").getBoundingClientRect(); tip.innerHTML = html; tip.style.left = Math.min(ev.clientX - r.left + 14, r.width - 240) + "px"; tip.style.top = ev.clientY - r.top + 14 + "px"; tip.style.opacity = 1; }
+const hide = () => tip.style.opacity = 0;
+function drawLanterns() {
+  lan.innerHTML = ""; const n = state.milestones.length, lap = Math.floor(n / CYCLE) * CYCLE;
+  for (let i = lap; i < n - 1; i++) {
+    const m = state.milestones[i], s = sAt(i - lap + 1), p = P(s, .75), sc = 1.4 * (1 - s / LEN * .7), g = el("g", { transform: `translate(${p[0]},${p[1]}) scale(${sc})`, style: "cursor:pointer" }, lan);
+    el("path", { d: "M0 -26 V-12 M-5 -12 h10 l2 4 v9 l-2 4 h-10 l-2 -4 v-9z", fill: "#ffd54a", stroke: "#8a6a10", "stroke-width": 1, filter: "url(#glow)" }, g);
+    g.onmousemove = ev => showTip(ev, `<b>Step ${i + 1}</b><br>${esc(m.label)}<br><small>${new Date(m.time).toLocaleDateString()}</small>`);
+    g.onmouseleave = hide;
+  }
+}
+const history3 = () => state.milestones.slice(-3).map(m => "• " + esc(m.label)).join("<br>") || "Your journey begins here.";
+hit.onmousemove = ev => showTip(ev, `🛤️ You've walked <b>${state.milestones.length}</b> steps<br>${history3()}<br><small>It never ends, because growing never does.</small>`);
+hit.onmouseleave = hide;
+walker.onmousemove = hit.onmousemove; walker.onmouseleave = hide;
+function addMilestone(label) {
+  state.milestones.push({ label, time: Date.now() }); persist();
+  if (state.milestones.length % CYCLE === 0) {
+    cancelAnimationFrame(anim); walker.style.opacity = 0;
+    setTimeout(() => { place(0); drawLanterns(); walker.style.opacity = 1; }, 1300);
+  } else { drawLanterns(); walkTo(sAt(state.milestones.length)); }
+}
+function petals(x, y) {
+  for (let i = 0; i < 14; i++) { const g = el("g", { transform: `translate(${x + rnd(-40, 40)},${y + rnd(-10, 10)})` }, fx);
+    el("path", { d: "M0 0 C4 -6 10 -6 14 0 C10 6 4 6 0 0Z", fill: greens[i % 5], class: "pt", style: `--dx:${rnd(-50, 50)}px;animation-delay:${rnd(0, 1)}s` }, g); setTimeout(() => g.remove(), 6500); }
+}
+
+let pending = null, busy = false;
+function say(text, who, html) { const d = document.createElement("div"); d.className = "msg " + who; d.innerHTML = html || (who === "tree" ? md(text) : esc(text)); $("log").appendChild(d); $("log").scrollTop = 1e9; return d; }
+function typeOut(node, reply, extra) {
+  return new Promise(res => {
+    const w = reply.split(/(\s+)/); let i = 0;
+    const t = setInterval(() => { i += 2; node.innerHTML = md(w.slice(0, i).join("")); $("log").scrollTop = 1e9;
+      if (i >= w.length) { clearInterval(t); node.innerHTML = md(reply) + extra; res(); } }, 55);
+  });
+}
+async function ask(text) {
+  if (busy) return; busy = true; $("sendBtn").disabled = true;
+  state.history.push({ role: "user", content: text });
+  const w = say("", "tree", '<span class="dots"><i></i><i></i><i></i></span>');
+  try {
+    const body = { messages: [{ role: "system", content: SYSTEM + `\nThe student's name is ${state.name}.` }, ...state.history.slice(-20)] };
+    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json(); if (!r.ok || j.error) throw new Error(j.error?.message || r.status);
+    const m = j.choices[0].message, reply = m.content || "";
+    if (!reply) throw new Error("Empty reply");
+    const seen = new Set(), srcs = (m.annotations || []).filter(a => a.type === "url_citation").map(a => a.url_citation).filter(c => c && !seen.has(c.url) && seen.add(c.url)).slice(0, 5);
+    const extra = srcs.length ? `<div class="src">${srcs.map(s => `<a href="${s.url}" target="_blank" rel="noopener">🔎 ${esc(s.title || new URL(s.url).hostname)}</a>`).join("")}</div>` : "";
+    state.history.push({ role: "assistant", content: reply });
+    await typeOut(w, reply, extra);
+    addMilestone(pending || text.slice(0, 40)); pending = null;
+  } catch (e) {
+    state.history.pop();
+    w.innerHTML = md(`🍂 The wind carried my words away (${e.message}). Check your .env keys and terminal output. That didn't count as a step.`);
+  }
+  setTimeout(() => { busy = false; $("sendBtn").disabled = false; }, COOLDOWN_MS);
+}
+$("form").onsubmit = e => { e.preventDefault(); const t = $("input").value.trim(); if (!t || busy) return; $("input").value = ""; say(t, "me"); ask(t); };
+function pickBranch(b) {
+  BR.forEach(x => x.path.classList.toggle("active", x === b)); document.querySelectorAll(".br").forEach((g, i) => g.classList.toggle("active", BR[i] === b));
+  petals(b.x, b.y);
+  pending = b.l.replace(/^\S+ /, "");
+  say(`🌿 Let's follow the ${b.t} branch together. Tell me a bit about yourself, or tap a thought below.`, "tree");
+  $("chips").innerHTML = ""; CHIPS[b.t].forEach(c => { const x = document.createElement("button"); x.textContent = c; x.onclick = () => { if (busy) return; say(c, "me"); ask(c + " (" + b.t + ")"); }; $("chips").appendChild(x); });
+}
+
+$("saveBtn").onclick = () => { persist(); say("💾 Your journey is saved to your account.", "tree"); };
+$("outBtn").onclick = async () => { await seal(); location.reload(); };
+$("bye").onclick = () => { say("🍃 Go gently, traveler. The road doesn't end here, it only bends out of sight. I'll let go of this branch now. Good luck, and come back whenever you're ready.", "tree"); addMilestone("Said goodbye (for now)"); BR.forEach(b => b.path.style.opacity = .4); };
+
+const music = new Audio("SoothingSounds.mp3");
+music.loop = true; music.volume = 0;
+let on = false, fade;
+function fadeTo(v, done) {
+  clearInterval(fade);
+  fade = setInterval(() => {
+    const d = v - music.volume;
+    if (Math.abs(d) < .02) { music.volume = v; clearInterval(fade); done && done(); }
+    else music.volume = Math.max(0, Math.min(1, music.volume + Math.sign(d) * .02));
+  }, 60);
+}
+$("soundBtn").onclick = async () => {
+  if (!on) {
+    try { await music.play(); fadeTo(VOLUME); on = true; }
+    catch (e) { console.error(e); say("🍂 I couldn't play the forest sounds. Check that SoothingSounds.mp3 is next to server.js.", "tree"); return; }
+  } else { on = false; fadeTo(0, () => music.pause()); }
+  $("soundBtn").textContent = (on ? "🔊" : "🔇") + " Forest sounds";
+};
+
+function begin() {
+  svg.style.setProperty("--hood", state.color || "#ffd54a");
+  drawLanterns(); place(sAt(state.milestones.length));
+  $("gate").classList.add("out");
+  say(state.milestones.length
+    ? `🌳 Welcome back, ${state.name}. You've walked ${state.milestones.length} steps. Tell me what has happened since we last spoke, and I'll offer a branch to continue.`
+    : `🌳 Ahh, a traveler arrives. Welcome, ${state.name}. I am the Tree of Wisdom. This golden road is your journey, and it has no end, for learning never does.\n\nAsk me anything about college, majors, careers, internships, clubs or research, and I'll look things up as we go. Tap a branch, or just tell me about yourself.`, "tree");
+}
+const gate = async mode => {
+  const u = $("u").value.trim(), p = $("p").value; $("gerr").textContent = "";
+  try {
+    if (!u || p.length < 6) throw new Error("Enter a username and a password of 6+ characters.");
+    if (!crypto.subtle) throw new Error("Encryption needs https or localhost.");
+    mode === "new" ? await createAccount(u, p, $("c").value) : await login(u, p);
+    begin();
+  } catch (e) { $("gerr").textContent = e.message; }
+};
+$("gateForm").onsubmit = e => { e.preventDefault(); gate("login"); };
+$("signBtn").onclick = () => gate("new");
+svg.style.setProperty("--hood", "#ffd54a"); place(0);

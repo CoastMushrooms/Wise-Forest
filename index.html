@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Tree of Wisdom</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="gate">
+  <form id="gateForm">
+    <h2>The Tree of Wisdom</h2>
+    <p>Sign in to remember your journey.</p>
+    <input id="u" placeholder="Username" autocomplete="username">
+    <input id="p" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+    <label>Your firefly's glow <input id="c" type="color" value="#ffd54a"></label>
+    <div class="row"><button class="pill gold" type="submit">Enter the Forest</button><button class="pill" id="signBtn" type="button">Create account</button></div>
+    <p id="gerr"></p>
+  </form>
+</div>
+<header>
+  <h1>The Tree of Wisdom</h1>
+  <div><button id="soundBtn" class="pill">🔇 Toggle Sound</button> <button id="saveBtn" class="pill">💾 Save</button> <button id="outBtn" class="pill">Log out</button></div>
+</header>
+<main>
+  <section id="stage">
+    <svg id="scene" viewBox="0 0 600 800" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03100b"/><stop offset=".6" stop-color="#0e3324"/><stop offset="1" stop-color="#1d5a3c"/></linearGradient>
+        <radialGradient id="moon"><stop offset="0" stop-color="#fffbe6"/><stop offset=".5" stop-color="#ffe9a8" stop-opacity=".45"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>
+        <linearGradient id="bark" x1="0" x2="1"><stop offset="0" stop-color="#24150a"/><stop offset=".5" stop-color="#63401f"/><stop offset="1" stop-color="#24150a"/></linearGradient>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="rough"><feTurbulence baseFrequency=".03 .12" numOctaves="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9"/></filter>
+        <filter id="blur"><feGaussianBlur stdDeviation="14"/></filter>
+      </defs>
+    </svg>
+    <div id="tip"></div>
+  </section>
+  <section id="chat">
+    <div id="log"></div>
+    <div id="chips"></div>
+    <form id="form"><input id="input" autocomplete="off" placeholder="Tell the tree about yourself, or ask anything…"><button id="sendBtn" class="pill gold">Send</button></form>
+    <button id="bye" class="link">Say Goodbye For Now 🍃</button>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
