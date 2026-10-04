@@ -280,3 +280,35 @@ main{
 @media(max-width:850px){
     main{grid-template-columns:1fr;
         grid-template-rows:42% 58%}}
+body{
+    font-family:Almendra,Georgia,serif;
+    background:radial-gradient(ellipse at 30% 0,#2a2a68,#050818 75%)}
+h1,#gateForm h2{font-family:'Cinzel Decorative',serif;
+    letter-spacing:2px}
+h1{
+    font-size:1.5rem}
+#stage{
+    background:#050818;
+    border-color:#4a4a8a}
+#chat{
+    background:linear-gradient(#151b3fdd,#0a0f2ddd);
+    border-color:#4a4a8a}
+.tree{
+    background:#2b3f7c}
+#gate{
+    background:radial-gradient(ellipse at 30% 0,#2a2a68,#050818 70%)}
+#gateForm{
+    background:#101640cc;
+    border-color:#4a4a8a}
+#gateForm input:not([type=color]), #input{background:#070b24}
+.pill:not(.gold){
+    background:#1a2250}
+.br text{
+    font:700 15px Almendra,serif}
+.br rect{
+    fill:#5a3a1e;
+    stroke:#c9a063;
+    stroke-width:2}
+.vine{transform-box:fill-box;
+    transform-origin:50% 0;
+    animation:sway 7s ease-in-out infinite alternate}

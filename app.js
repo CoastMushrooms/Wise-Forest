@@ -35,67 +35,97 @@ async function login(user, pw) {
   catch { KEY = null; throw new Error("Wrong password."); }
 }
 
-const svg = $("scene"), G = id => el("g", { id }, svg);
-const sky = G("sky"), hills = G("hills"), mist = G("mist"), tree = G("tree"), roadG = G("roadG"), fx = G("fx");
-el("rect", { width: 600, height: 800, fill: "url(#sky)" }, sky);
-for (let i = 0; i < 55; i++) el("circle", { cx: rnd(0, 600), cy: rnd(0, 260), r: rnd(.4, 1.3), fill: "#fff8d6", class: "star", style: `animation-delay:${rnd(0, 3)}s` }, sky);
-el("circle", { cx: 470, cy: 110, r: 85, fill: "url(#moon)" }, sky); el("circle", { cx: 470, cy: 110, r: 24, fill: "#fff6d0" }, sky);
-[["M0 230 Q100 150 220 200 T420 170 T600 190 V800 H0Z", "#12402b"], ["M0 330 Q150 250 300 300 T600 280 V800 H0Z", "#0d3524"], ["M0 450 Q200 380 400 430 T600 400 V800 H0Z", "#092617"]].forEach(([d, f]) => el("path", { d, fill: f }, hills));
-[[150, 400, 90], [330, 530, 80]].forEach(([y, x, ry], i) => el("ellipse", { cx: x, cy: y + 160, rx: 260, ry, fill: "#bfe8d0", opacity: .13, filter: "url(#blur)", class: "mist", style: `animation-duration:${80 + i * 25}s` }, mist));
+const svg=$("scene"),G=id=>el("g",{id},svg);
+const sky=G("sky"),fair=G("fair"),hills=G("hills"),tree=G("tree"),roadG=G("roadG"),ground=G("ground"),limbs=G("limbs"),canopy=G("canopy"),signs=G("signs"),fx=G("fx");
+[fair,ground,limbs,canopy].forEach(g=>g.style.pointerEvents="none");
+const LEAF="M0 0 C6 -9 16 -9 22 0 C16 9 6 9 0 0Z",greens=["#1d5b4a","#2a7a5a","#164a3c","#3a9a6a","#0f3a30"];
 
-const trunk = el("g", { filter: "url(#rough)" }, tree);
-el("path", { d: "M30 800 C80 730 60 650 80 560 C95 480 70 400 88 330 C98 280 92 240 108 196 L152 206 C150 262 160 300 150 360 C145 430 172 500 162 570 C152 650 200 730 230 800Z", fill: "url(#bark)" }, trunk);
-const LEFT = [[30, 800, 80, 730, 60, 650, 80, 560], [80, 560, 95, 480, 70, 400, 88, 330], [88, 330, 98, 280, 92, 240, 108, 196]];
-const RIGHT = [[230, 800, 200, 730, 152, 650, 162, 570], [162, 570, 172, 500, 145, 430, 150, 360], [150, 360, 160, 300, 150, 262, 152, 206]];
-const groove = f => LEFT.map((a, i) => { const b = RIGHT[i], q = a.map((v, k) => (v + (b[k] - v) * f).toFixed(1)); return (i ? "" : `M${q[0]} ${q[1]} `) + `C${q[2]} ${q[3]} ${q[4]} ${q[5]} ${q[6]} ${q[7]}`; }).join(" ");
-const grooves = el("g", { fill: "none", "stroke-linecap": "round" }, trunk);
-for (let i = 0; i < 16; i++) el("path", { d: groove(.07 + i * .057 + rnd(-.012, .012)), stroke: "#1a0f06", "stroke-width": rnd(1.2, 2.4), opacity: rnd(.3, .5) }, grooves);
-for (let i = 0; i < 9; i++) el("path", { d: groove(.1 + i * .1 + rnd(-.02, .02)), stroke: "#9b6a36", "stroke-width": 1, opacity: .22 }, grooves);
-el("path", { d: "M104 470 Q120 420 138 470 Q135 520 120 524 Q106 520 104 470Z", fill: "#120a04" }, tree);
-[[112, 470], [130, 470]].forEach(([x, y]) => el("path", { d: `M${x - 5} ${y} Q${x} ${y - 6} ${x + 5} ${y} Q${x} ${y + 5} ${x - 5} ${y}Z`, fill: "#ffe9a8", filter: "url(#glow)", class: "eye" }, tree));
+el("rect",{width:600,height:800,fill:"url(#sky)"},sky);
+for(let i=0;i<95;i++)el("circle",{cx:rnd(0,600),cy:rnd(0,380),r:rnd(.4,1.4),fill:"#fff8e0",class:"star",style:`animation-delay:${rnd(0,3)}s`},sky);
+for(let i=0;i<7;i++)el("path",{d:"M0-6V6M-6 0H6",stroke:"#fff3c4","stroke-width":.8,transform:`translate(${rnd(20,580)},${rnd(10,260)})`,class:"star",style:`animation-delay:${rnd(0,3)}s`},sky);
+el("circle",{cx:440,cy:115,r:130,fill:"url(#moon)"},sky);el("circle",{cx:440,cy:115,r:34,fill:"#fff9dc"},sky);
+[[430,105,7],[452,126,5],[444,98,3.5]].forEach(([x,y,r])=>el("circle",{cx:x,cy:y,r,fill:"#e6dcae",opacity:.55},sky));
 
-const BR = [
-  { t: "College", l: "🎓 College & Major", d: "M148 565 C230 565 275 545 322 505", x: 322, y: 505 },
-  { t: "Career", l: "💼 Career", d: "M148 460 C225 450 265 415 332 388", x: 332, y: 388 },
-  { t: "Opportunities", l: "🌟 Opportunities", d: "M146 360 C200 340 255 305 312 272", x: 312, y: 272 },
-  { t: "Explore", l: "🧭 Not sure yet", d: "M155 655 C235 655 285 645 335 605", x: 335, y: 605 }];
-const CHIPS = {
-  College: ["Help Me Choose A Major", "Suggest Minors For Me", "What Can I Do With A CS Degree?"],
-  Career: ["Review My Resume", "Mock Interview Me", "What Career Suits Me?", "Find Internships"],
-  Opportunities: ["Clubs For My Interests", "Volunteer Ideas", "How Do I Join Research?", "On-Campus Jobs"],
-  Explore: ["I Don't Know What I Like", "Ask Me Questions To Find My Path"]
-};
-BR.forEach(b => {
-  b.path = el("path", { d: b.d, stroke: "#4a2f1b", "stroke-width": 14, fill: "none", "stroke-linecap": "round", class: "bp", filter: "url(#rough)" }, tree);
-  const g = el("g", { class: "br", transform: `translate(${b.x},${b.y})` }, tree), s = el("g", { class: "sign" }, g);
-  el("path", { d: "M-30 0 L-30 10 M30 0 L30 10", stroke: "#b98b52", "stroke-width": 1.5 }, s);
-  el("rect", { x: -64, y: 8, width: 128, height: 30, rx: 9 }, s);
-  el("text", { "text-anchor": "middle", y: 28 }, s).textContent = b.l;
-  g.onclick = () => pickBranch(b);
-});
-const greens = ["#1f6b3a", "#2a8a4a", "#164f2c", "#3aa35c", "#0f3d22"];
-for (let i = 0; i < 230; i++) {
-  const a = rnd(0, 6.28), r = Math.sqrt(Math.random()), x = 115 + Math.cos(a) * r * 165, y = 150 + Math.sin(a) * r * 115;
-  const g = el("g", { transform: `translate(${x},${y}) rotate(${rnd(0, 360)}) scale(${rnd(.8, 1.6)})` }, tree);
-  el("path", { d: "M0 0 C6 -9 16 -9 22 0 C16 9 6 9 0 0Z", fill: greens[i % 5], opacity: rnd(.75, 1), class: "lf", style: `animation-delay:${rnd(-5, 0)}s` }, g);
-}
+const fairies=Array.from({length:30},()=>{const g=el("g",{},fair);el("circle",{r:6,fill:"#cfe8ff",opacity:.15},g);el("circle",{r:1.6,fill:"#fff"},g);return{g,x:rnd(0,600),y:rnd(20,330),p:rnd(0,6.3),s:rnd(.6,1.4)}});
+(function wind(t){t/=1000;fairies.forEach(f=>{f.x+=.18*f.s*(1+Math.sin(t*.4+f.y*.012));if(f.x>640)f.x=-40;f.g.setAttribute("transform",`translate(${f.x},${f.y+Math.sin(t*.7+f.x*.018+f.p)*16})`);f.g.style.opacity=.12+.3*Math.max(0,Math.sin(t*1.3*f.s+f.p))});requestAnimationFrame(wind)})(0);
 
-const ROAD = "M390 800 C250 700 500 600 360 520 C240 450 470 390 370 330 C300 290 420 250 390 200 C375 170 395 150 400 130";
-const rp = el("path", { d: ROAD, fill: "none" }, roadG), LEN = rp.getTotalLength(), N = 70, rows = [];
-const wd = t => 60 * Math.pow(1 - t, 1.1) + 5;
-const P = (s, o) => { const p = rp.getPointAtLength(s), q = rp.getPointAtLength(s + 1), m = Math.hypot(q.x - p.x, q.y - p.y) || 1, w = wd(s / LEN); return [p.x - (q.y - p.y) / m * o * w, p.y + (q.x - p.x) / m * o * w]; };
-const S = u => LEN * .97 * (1 - Math.pow(1 - u, 2));
-for (let i = 0; i < N; i++) {
-  const s0 = S(i / N), s1 = S((i + .92) / N), offs = i % 2 ? [-.5, 0, .5] : [-.5, -.17, .17, .5], r = { s: s1, els: [] };
-  for (let k = 0; k < offs.length - 1; k++) {
-    const pts = [P(s0, offs[k] + .01), P(s0, offs[k + 1] - .01), P(s1, offs[k + 1] - .01), P(s1, offs[k] + .01)];
-    r.els.push(el("polygon", { points: pts.map(p => p.join(",")).join(" "), class: "brick", style: `opacity:${(1 - i / N * .8) * rnd(.8, 1)}` }, roadG));
+const pine=(x,y,h,f)=>el("path",{d:`M${x} ${y-h}L${x+h*.28} ${y-h*.35}L${x+h*.14} ${y-h*.35}L${x+h*.36} ${y}L${x-h*.36} ${y}L${x-h*.14} ${y-h*.35}L${x-h*.28} ${y-h*.35}Z`,fill:f},hills);
+[["M0 330 Q150 270 300 310 T600 290 V800H0Z","#1a2550","#121b40",305],["M0 430 Q200 370 400 420 T600 400 V800H0Z","#111a3c","#0b1232",408],["M0 560 Q220 500 420 550 T600 530 V800H0Z","#0b2a2e","",0]].forEach(([d,f,pf,b])=>{el("path",{d,fill:f},hills);if(b)for(let x=-10;x<620;x+=rnd(12,24))pine(x,b+rnd(-4,12),rnd(26,52),pf)});
+[[420,360],[200,500]].forEach(([x,y],i)=>el("ellipse",{cx:x,cy:y,rx:240,ry:36,fill:"#b9c8ff",opacity:.1,filter:"url(#blur)",class:"mist",style:`animation-duration:${80+i*25}s`},hills));
+
+const trunk=el("g",{filter:"url(#rough)"},tree);
+el("path",{d:"M30 800 C80 730 60 650 80 560 C95 480 70 400 88 330 C98 280 92 240 108 196 L152 206 C150 262 160 300 150 360 C145 430 172 500 162 570 C152 650 200 730 230 800Z",fill:"url(#bark)"},trunk);
+const LEFT=[[30,800,80,730,60,650,80,560],[80,560,95,480,70,400,88,330],[88,330,98,280,92,240,108,196]];
+const RIGHT=[[230,800,200,730,152,650,162,570],[162,570,172,500,145,430,150,360],[150,360,160,300,150,262,152,206]];
+const groove=f=>LEFT.map((a,i)=>{const b=RIGHT[i],q=a.map((v,k)=>(v+(b[k]-v)*f).toFixed(1));return(i?"":`M${q[0]} ${q[1]} `)+`C${q[2]} ${q[3]} ${q[4]} ${q[5]} ${q[6]} ${q[7]}`}).join(" ");
+const grooves=el("g",{fill:"none","stroke-linecap":"round"},trunk);
+for(let i=0;i<16;i++)el("path",{d:groove(.07+i*.057+rnd(-.012,.012)),stroke:"#1a0f06","stroke-width":rnd(1.2,2.4),opacity:rnd(.3,.5)},grooves);
+for(let i=0;i<9;i++)el("path",{d:groove(.1+i*.1+rnd(-.02,.02)),stroke:"#9b6a36","stroke-width":1,opacity:.22},grooves);
+el("path",{d:"M104 470 Q120 420 138 470 Q135 520 120 524 Q106 520 104 470Z",fill:"#120a04"},tree);
+[[112,470],[130,470]].forEach(([x,y])=>el("path",{d:`M${x-5} ${y} Q${x} ${y-6} ${x+5} ${y} Q${x} ${y+5} ${x-5} ${y}Z`,fill:"#ffe9a8",filter:"url(#glow)",class:"eye"},tree));
+
+const ROAD="M-80 870 C40 800 170 800 260 745 C360 690 470 690 500 610 C530 530 380 500 420 420 C455 350 540 350 525 260 C515 200 555 175 575 125";
+const rp=el("path",{d:ROAD,fill:"none"},roadG),LEN=rp.getTotalLength(),N=70,rows=[];
+el("path",{d:ROAD,stroke:"#ffd54a","stroke-width":70,opacity:.08,fill:"none",filter:"url(#blur)"},roadG);
+const wd=t=>60*Math.pow(1-t,1.1)+5;
+const P=(s,o)=>{const p=rp.getPointAtLength(s),q=rp.getPointAtLength(s+1),m=Math.hypot(q.x-p.x,q.y-p.y)||1,w=wd(s/LEN);return[p.x-(q.y-p.y)/m*o*w,p.y+(q.x-p.x)/m*o*w]};
+const S=u=>LEN*.97*(1-Math.pow(1-u,2));
+for(let i=0;i<N;i++){
+  const s0=S(i/N),s1=S((i+.92)/N),offs=i%2?[-.5,0,.5]:[-.5,-.17,.17,.5],r={s:s1,els:[]};
+  for(let k=0;k<offs.length-1;k++){
+    const pts=[P(s0,offs[k]+.01),P(s0,offs[k+1]-.01),P(s1,offs[k+1]-.01),P(s1,offs[k]+.01)];
+    r.els.push(el("polygon",{points:pts.map(p=>p.join(",")).join(" "),class:"brick",style:`opacity:${(1-i/N*.8)*rnd(.8,1)}`},roadG));
   }
   rows.push(r);
 }
-const hit = el("path", { d: ROAD, stroke: "transparent", "stroke-width": 80, fill: "none" }, roadG);
-const setLit = s => rows.forEach(r => r.els.forEach(e => e.classList.toggle("lit", r.s <= s)));
-const sAt = n => LEN * .92 * ((n % CYCLE) / (CYCLE - 1));
+const hit=el("path",{d:ROAD,stroke:"transparent","stroke-width":80,fill:"none"},roadG);
+const setLit=s=>rows.forEach(r=>r.els.forEach(e=>e.classList.toggle("lit",r.s<=s)));
+const sAt=n=>LEN*(.1+.8*((n%CYCLE)/(CYCLE-1)));
+
+const shroom=(x,y,s,c)=>{const g=el("g",{transform:`translate(${x},${y}) scale(${s})`},ground);
+  el("ellipse",{cx:0,cy:2,rx:16,ry:5,fill:c,opacity:.2,filter:"url(#glow)",class:"pulse"},g);
+  el("path",{d:"M-2.5 0C-3 -8 -2 -12 0 -14C2 -12 3 -8 2.5 0Z",fill:"#efe6d2"},g);
+  el("path",{d:"M-13 -12C-13 -26 13 -26 13 -12C6 -15 -6 -15 -13 -12Z",fill:c},g);
+  [[-6,-19,2],[3,-21,2.4],[8,-17,1.6]].forEach(([a,b,r])=>el("circle",{cx:a,cy:b,r,fill:"#fff7e0",opacity:.9},g));};
+[[248,716,1.1,"#e0568f"],[272,724,.7,"#9b6bff"],[205,740,.8,"#4fd1c5"],[24,652,1,"#e0568f"],[44,664,.65,"#4fd1c5"],[410,775,1.2,"#9b6bff"],[438,786,.8,"#e0568f"],[470,768,.6,"#4fd1c5"],[560,540,1,"#e0568f"],[540,552,.6,"#9b6bff"]].forEach(a=>shroom(...a));
+
+const leafAlong=(p,gap,sc=1)=>{const L=p.getTotalLength();for(let s=L*.1;s<L;s+=gap){const q=p.getPointAtLength(s),g=el("g",{transform:`translate(${q.x},${q.y}) rotate(${rnd(0,360)}) scale(${rnd(.8,1.5)*sc})`},canopy);
+  el("path",{d:LEAF,fill:Math.random()<.07?"#d9a3ff":greens[(Math.random()*5)|0],opacity:rnd(.8,1),class:"lf",style:`animation-delay:${rnd(-8,0)}s`},g)}};
+const vine=(x,y,n)=>{const g=el("g",{class:"vine",style:`animation-delay:${rnd(-6,0)}s`},canopy);let d=`M${x} ${y}`;const pts=[];
+  for(let i=1;i<=n;i++){const px=x+Math.sin(i*.9+x)*5,py=y+i*9;d+=`L${px.toFixed(1)} ${py}`;pts.push([px,py])}
+  el("path",{d,stroke:"#1f6a4a","stroke-width":1.8,fill:"none","stroke-linejoin":"round"},g);
+  pts.forEach(([px,py],i)=>{if(i%2)el("path",{d:LEAF,fill:greens[i%5],transform:`translate(${px},${py}) rotate(${i%4<2?20:160}) scale(.6)`},g)})};
+const limb=(d,w,gap,vs)=>{const g=el("g",{},limbs),o={fill:"none","stroke-linecap":"round"};
+  const base=el("path",{...o,d,stroke:"#3d2412","stroke-width":w,filter:"url(#rough)"},g);
+  el("path",{...o,d,stroke:"#6b4426","stroke-width":w*.55,"stroke-dasharray":"14 3 6 5",opacity:.7},g);
+  el("path",{...o,d,stroke:"#1a0e05","stroke-width":1.6,"stroke-dasharray":"22 7 5 11",opacity:.6,transform:`translate(0 ${-w*.18})`},g);
+  el("path",{...o,d,stroke:"#a57a45","stroke-width":1.2,"stroke-dasharray":"9 14",opacity:.35,transform:`translate(0 ${w*.2})`},g);
+  leafAlong(base,gap);const L=base.getTotalLength();vs.forEach(f=>{const q=base.getPointAtLength(L*f);vine(q.x,q.y,5+((Math.random()*6)|0))});return base};
+
+["M138 270 C90 240 40 225 -10 190","M150 235 C230 190 330 175 420 120","M95 430 C60 410 30 395 -10 370","M150 300 C240 290 320 330 370 318"].forEach(d=>limb(d,20,12,[.5,.8]));
+["M92 690 C150 670 175 640 120 600 C70 565 150 540 150 500","M95 380 C140 360 160 330 112 300 C80 280 120 250 130 230"].forEach(d=>{const v=el("path",{d,stroke:"#1f6a4a","stroke-width":3,fill:"none","stroke-linecap":"round"},canopy);leafAlong(v,15,.8)});
+
+const BR=[
+  {t:"College",l:"🎓 College & Major",d:"M158 600 C230 610 270 585 305 548",x:305,y:548},
+  {t:"Career",l:"💼 Career",d:"M152 470 C230 470 270 430 322 395",x:322,y:395},
+  {t:"Opportunities",l:"🌟 Opportunities",d:"M148 350 C220 330 270 285 318 245",x:318,y:245},
+  {t:"Explore",l:"🧭 Not sure yet",d:"M165 690 C235 695 270 672 300 632",x:300,y:632}];
+const CHIPS={
+  College:["Help me choose a major","Suggest minors for me","What can I do with a CS degree?"],
+  Career:["Review my resume","Mock interview me","What career suits me?","Find internships"],
+  Opportunities:["Clubs for my interests","Volunteer ideas","How do I join research?","On-campus jobs"],
+  Explore:["I don't know what I like","Ask me questions to find my path"]};
+BR.forEach(b=>{
+  b.path=limb(b.d,26,13,[.5,.8]);b.path.classList.add("bp");
+  const g=el("g",{class:"br",transform:`translate(${b.x},${b.y})`},signs),s=el("g",{class:"sign"},g);
+  el("path",{d:"M-40 0L-40 12M40 0L40 12",stroke:"#b98b52","stroke-width":2},s);
+  el("rect",{x:-78,y:10,width:156,height:38,rx:12},s);
+  el("text",{"text-anchor":"middle",y:35},s).textContent=b.l;
+  g.onclick=()=>pickBranch(b);
+});
+for(let i=0;i<380;i++){const a=rnd(0,6.28),r=Math.sqrt(Math.random()),x=120+Math.cos(a)*r*210,y=135+Math.sin(a)*r*125,g=el("g",{transform:`translate(${x},${y}) rotate(${rnd(0,360)}) scale(${rnd(.8,1.6)})`},canopy);
+  el("path",{d:LEAF,fill:greens[i%5],opacity:rnd(.75,1),class:"lf",style:`animation-delay:${rnd(-8,0)}s`},g)}
+for(let i=0;i<14;i++)el("circle",{cx:rnd(10,260),cy:rnd(40,230),r:rnd(2,3.5),fill:"#f0b3ff",filter:"url(#glow)",class:"pulse",style:`animation-delay:${rnd(0,2.6)}s`},canopy);
 
 function makeAvatar(p) {
   const g = el("g", {}, p), f = el("g", { class: "bob" }, g);
@@ -141,7 +171,7 @@ function addMilestone(label) {
   state.milestones.push({ label, time: Date.now() }); persist();
   if (state.milestones.length % CYCLE === 0) {
     cancelAnimationFrame(anim); walker.style.opacity = 0;
-    setTimeout(() => { place(0); drawLanterns(); walker.style.opacity = 1; }, 1300);
+    setTimeout(() => { place(sAt(0)); drawLanterns(); walker.style.opacity = 1; }, 1300);
   } else { drawLanterns(); walkTo(sAt(state.milestones.length)); }
 }
 function petals(x, y) {
@@ -230,4 +260,4 @@ const gate = async mode => {
 };
 $("gateForm").onsubmit = e => { e.preventDefault(); gate("login"); };
 $("signBtn").onclick = () => gate("new");
-svg.style.setProperty("--hood", "#ffd54a"); place(0);
+svg.style.setProperty("--hood", "#ffd54a"); place(sAt(0));
