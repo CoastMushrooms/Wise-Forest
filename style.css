@@ -312,3 +312,16 @@ h1{
 .vine{transform-box:fill-box;
     transform-origin:50% 0;
     animation:sway 7s ease-in-out infinite alternate}
+body{background:radial-gradient(ellipse at 30% 0,#005058,#00262b 75%)}
+#gate{background:radial-gradient(ellipse at 30% 0,#005058,#00333a 70%)}
+#gateForm{
+    background:#003a40cc;
+    border-color:#0a8a96}
+#gateForm input:not([type=color]),#input{background:#00262b}
+#stage{border-color:#0a8a96}
+#chat{
+    background:linear-gradient(#003a40dd,#00262bdd);
+    border-color:#0a8a96}
+.tree{background:#00666f}
+.pill:not(.gold){background:#00444b}
+#tip{background:#00262be6}
