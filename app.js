@@ -36,7 +36,17 @@ async function login(user, pw) {
 }
 
 const svg=$("scene"),G=id=>el("g",{id},svg);
-const sky=G("sky"),fair=G("fair"),hills=G("hills"),tree=G("tree"),roadG=G("roadG"),ground=G("ground"),limbs=G("limbs"),canopy=G("canopy"),signs=G("signs"),fx=G("fx");
+const sky=G("sky"),
+  fair=G("fair"),
+  hills=G("hills"),
+  tree=G("tree"),
+  roadG=G("roadG"),
+  ground=G("ground"),
+  limbs=G("limbs"),
+  canopy=G("canopy"),
+  signs=G("signs"),
+  walkerG=G("walkerG"),
+  fx=G("fx");
 [fair,ground,limbs,canopy].forEach(g=>g.style.pointerEvents="none");
 const LEAF="M0 0 C6 -9 16 -9 22 0 C16 9 6 9 0 0Z",greens=["#1d5b4a","#2a7a5a","#164a3c","#3a9a6a","#0f3a30"];
 
@@ -141,7 +151,7 @@ function makeAvatar(p) {
   el("path", { d: "M8.5 -27 Q11 -31 14 -31 M7.5 -27.5 Q8 -32 11 -34", stroke: "#ffe9a8", "stroke-width": .8, fill: "none", "stroke-linecap": "round" }, f);
   return g;
 }
-const walker = makeAvatar(roadG);
+const walker = makeAvatar(walkerG);
 walker.style.transition = "opacity 1.2s ease";
 let cur = 0, anim;
 function place(s) { const p = rp.getPointAtLength(s), sc = 2 * (1 - s / LEN * .7); walker.setAttribute("transform", `translate(${p.x},${p.y}) scale(${sc})`); setLit(s); cur = s; }
